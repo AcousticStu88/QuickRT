@@ -73,6 +73,36 @@ MATERIALS_DATA = {
     "Ecophon Solo 2.4x1.2m at 1000mm ODS": {
         125: 1.10, 250: 1.20, 500: 3.70,
         1000: 5.50, 2000: 5.60, 4000: 5.30
+    },
+    # Example raft with total sabins per raft
+    "Ecophon Solo 1.2x0.2m c600 at 200mm ODS": {
+        125: 0.10, 250: 0.20, 500: 0.30,
+        1000: 0.40, 2000: 0.40, 4000: 0.40
+    },
+    # Example raft with total sabins per raft
+    "Ecophon Solo 1.2x0.3m c600 at 300mm ODS": {
+        125: 0.20, 250: 0.30, 500: 0.30,
+        1000: 0.50, 2000: 0.50, 4000: 0.50
+    },
+    # Example raft with total sabins per raft
+    "Ecophon Solo 1.2x0.6m c600 at 600mm ODS": {
+        125: 0.30, 250: 0.20, 500: 0.40,
+        1000: 0.60, 2000: 0.60, 4000: 0.60
+    },
+    # Example raft with total sabins per raft
+    "Ecophon Solo 1.8x0.2m c600 at 200mm ODS": {
+        125: 0.10, 250: 0.40, 500: 0.40,
+        1000: 0.60, 2000: 0.60, 4000: 0.60
+    },
+    # Example raft with total sabins per raft
+    "Ecophon Solo 1.8x0.3m c600 at 300mm ODS": {
+        125: 0.20, 250: 0.40, 500: 0.40,
+        1000: 0.70, 2000: 0.70, 4000: 0.70
+    },
+    # Example raft with total sabins per raft
+    "Ecophon Solo 1.8x0.6m c600 at 600mm ODS": {
+        125: 0.40, 250: 0.40, 500: 0.70,
+        1000: 1.00, 2000: 0.90, 4000: 0.90
     }
 }
 
@@ -128,8 +158,8 @@ def main():
     # ---------------------------------------------------------
     st.subheader("Acoustic Rafts")
     raft_cols = st.columns(2)
-    raft_mat = raft_cols[0].selectbox("Raft Material", list(MATERIALS_DATA.keys()))
-    raft_count = raft_cols[1].number_input("Number of Rafts", value=0, min_value=0, step=1)
+    raft_mat = raft_cols[0].selectbox("Raft/Baffle Material", list(MATERIALS_DATA.keys()))
+    raft_count = raft_cols[1].number_input("Number of Rafts/Baffles", value=0, min_value=0, step=1)
 
     # ---------------------------------------------------------
     # Calculate Button
