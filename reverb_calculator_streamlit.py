@@ -60,7 +60,17 @@ MATERIALS_DATA = {
         1000: 0.62, 2000: 0.51, 4000: 0.70
     },
     # Example raft with total sabins per raft
-    "Ecophon Solo at 1000mm ODS": {
+    "Ecophon Solo 2.4x1.2m at 200mm ODS": {
+        125: 1.30, 250: 2.80, 500: 3.5,
+        1000: 4.10, 2000: 4.1, 4000: 3.9
+    },
+        # Example raft with total sabins per raft
+    "Ecophon Solo 2.4x1.2m at 400mm ODS": {
+        125: 1.2, 250: 2.40, 500: 3.30,
+        1000: 4.7, 2000: 4.9, 4000: 4.7
+    },
+    # Example raft with total sabins per raft
+    "Ecophon Solo 2.4x1.2m at 1000mm ODS": {
         125: 1.10, 250: 1.20, 500: 3.70,
         1000: 5.50, 2000: 5.60, 4000: 5.30
     }
@@ -207,7 +217,7 @@ def main():
         # Append to session state
         st.session_state["results"].append(data_dict)
 
-        # -- Plot the T60 for the current calculation --
+       """ # -- Plot the T60 for the current calculation --
         freqs = list(t60_values.keys())
         t60vals = [t60_values[f] for f in freqs]
 
@@ -218,7 +228,7 @@ def main():
         ax.set_title("Reverberation Time per Frequency Band")
         st.pyplot(fig)
 
-        st.success("Calculation complete! See 'Cumulative Results' section below.")
+        st.success("Calculation complete! See 'Cumulative Results' section below.")"""
 
     # ---------------------------------------------------------
     # Show a cumulative table of results
