@@ -220,14 +220,12 @@ def main():
        """ # -- Plot the T60 for the current calculation --
         freqs = list(t60_values.keys())
         t60vals = [t60_values[f] for f in freqs]
-
         fig, ax = plt.subplots()
         ax.bar(freqs, t60vals)
         ax.set_xlabel("Frequency (Hz)")
         ax.set_ylabel("T60 (s)")
         ax.set_title("Reverberation Time per Frequency Band")
         st.pyplot(fig)
-
         st.success("Calculation complete! See 'Cumulative Results' section below.")"""
 
     # ---------------------------------------------------------
