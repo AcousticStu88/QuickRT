@@ -1,6 +1,5 @@
 import streamlit as st
-import csv
-import os
+import pandas as pd
 
 # ---------------------------------------------------------
 # Frequency bands we want to evaluate
@@ -11,135 +10,21 @@ FREQ_BANDS = [125, 250, 500, 1000, 2000, 4000]
 # Absorption data for each material/raft, per frequency band.
 # ---------------------------------------------------------
 MATERIALS_DATA = {
-    "Select Material": {
-        125: 0.00,
-        250: 0.00,
-        500: 0.00,
-        1000: 0.00,
-        2000: 0.00,
-        4000: 0.00
-    },
-    "Plasterboard on Frame 50mm": {
-        125: 0.15,
-        250: 0.10,
-        500: 0.06,
-        1000: 0.04,
-        2000: 0.04,
-        4000: 0.05
-    },
-    "Smooth Unpainted Concrete": {
-        125: 0.01,
-        250: 0.01,
-        500: 0.02,
-        1000: 0.02,
-        2000: 0.02,
-        4000: 0.05
-    },
-    "5mm Needlefelt Carpet": {
-        125: 0.01,
-        250: 0.02,
-        500: 0.05,
-        1000: 0.15,
-        2000: 0.30,
-        4000: 0.40
-    },
-    "Linoleum or vinyl on Concrete": {
-        125: 0.02,
-        250: 0.02,
-        500: 0.03,
-        1000: 0.04,
-        2000: 0.04,
-        4000: 0.05
-    },
-    "4mm Glass": {
-        125: 0.30,
-        250: 0.20,
-        500: 0.10,
-        1000: 0.07,
-        2000: 0.05,
-        4000: 0.02
-    },
-    "Class A": {
-        125: 0.50,
-        250: 0.70,
-        500: 0.90,
-        1000: 0.90,
-        2000: 0.90,
-        4000: 0.90
-    },
-    "Class B": {
-        125: 0.40,
-        250: 0.60,
-        500: 0.80,
-        1000: 0.80,
-        2000: 0.80,
-        4000: 0.70
-    },
-    "Class C": {
-        125: 0.20,
-        250: 0.40,
-        500: 0.60,
-        1000: 0.60,
-        2000: 0.60,
-        4000: 0.50
-    },
-    "Class D": {
-        125: 0.10,
-        250: 0.10,
-        500: 0.30,
-        1000: 0.30,
-        2000: 0.30,
-        4000: 0.20
-    },
-    "Class E": {
-        125: 0.05,
-        250: 0.05,
-        500: 0.15,
-        1000: 0.15,
-        2000: 0.15,
-        4000: 0.10
-    },
-    "Egg cartons directly on wall ": {
-        125: 0.01,
-        250: 0.07,
-        500: 0.43,
-        1000: 0.62,
-        2000: 0.51,
-        4000: 0.70
-    },
-    # Example raft with total sabins per raft, not an absorption coefficient
-    "Ecophon Solo at 1000mm ODS": {
-        125: 1.10,
-        250: 1.20,
-        500: 3.70,
-        1000: 5.50,
-        2000: 5.60,
-        4000: 5.30
-    }
+    "Select Material": {125: 0.00, 250: 0.00, 500: 0.00, 1000: 0.00, 2000: 0.00, 4000: 0.00},
+    "Plasterboard on Frame 50mm": {125: 0.15, 250: 0.10, 500: 0.06, 1000: 0.04, 2000: 0.04, 4000: 0.05},
+    "Smooth Unpainted Concrete": {125: 0.01, 250: 0.01, 500: 0.02, 1000: 0.02, 2000: 0.02, 4000: 0.05},
+    "5mm Needlefelt Carpet": {125: 0.01, 250: 0.02, 500: 0.05, 1000: 0.15, 2000: 0.30, 4000: 0.40},
+    "Linoleum or vinyl on Concrete": {125: 0.02, 250: 0.02, 500: 0.03, 1000: 0.04, 2000: 0.04, 4000: 0.05},
+    "4mm Glass": {125: 0.30, 250: 0.20, 500: 0.10, 1000: 0.07, 2000: 0.05, 4000: 0.02},
+    "Class A": {125: 0.50, 250: 0.70, 500: 0.90, 1000: 0.90, 2000: 0.90, 4000: 0.90},
+    "Class B": {125: 0.40, 250: 0.60, 500: 0.80, 1000: 0.80, 2000: 0.80, 4000: 0.70},
+    "Class C": {125: 0.20, 250: 0.40, 500: 0.60, 1000: 0.60, 2000: 0.60, 4000: 0.50},
+    "Class D": {125: 0.10, 250: 0.10, 500: 0.30, 1000: 0.30, 2000: 0.30, 4000: 0.20},
+    "Class E": {125: 0.05, 250: 0.05, 500: 0.15, 1000: 0.15, 2000: 0.15, 4000: 0.10},
+    "Egg cartons directly on wall ": {125: 0.01, 250: 0.07, 500: 0.43, 1000: 0.62, 2000: 0.51, 4000: 0.70},
+    # Example raft with total sabins per raft
+    "Ecophon Solo at 1000mm ODS": {125: 1.10, 250: 1.20, 500: 3.70, 1000: 5.50, 2000: 5.60, 4000: 5.30},
 }
-
-# ---------------------------------------------------------
-# CSV file to store each calculation’s inputs & results
-# ---------------------------------------------------------
-CSV_FILENAME = "freq_dependent_reverb_calculations.csv"
-
-
-def write_to_csv(data_dict):
-    """
-    Writes a single row of data (dictionary) to the CSV file.
-    If the CSV does not exist yet, creates and writes a header row.
-    """
-    file_exists = os.path.isfile(CSV_FILENAME)
-    with open(CSV_FILENAME, mode='a', newline='', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, fieldnames=data_dict.keys())
-
-        # Write header if file doesn't exist
-        if not file_exists:
-            writer.writeheader()
-
-        # Write data row
-        writer.writerow(data_dict)
-
 
 def main():
     st.title("Frequency-Dependent Reverb Estimator")
@@ -148,6 +33,11 @@ def main():
         "This tool calculates the reverberation time (T60) across octave bands using Sabine's formula.\n"
         "It also allows specifying multiple materials for ceiling, walls, floor, and optionally an acoustic raft."
     )
+
+    # Maintain a list of dictionaries in Session State to store results
+    # so they persist through multiple calculations in a single session.
+    if "results" not in st.session_state:
+        st.session_state["results"] = []
 
     # ---------------------------------------------------------
     # ROOM GEOMETRY INPUTS
@@ -162,8 +52,8 @@ def main():
     # ---------------------------------------------------------
     st.subheader("Ceiling")
     ceiling_cols = st.columns(3)
-    ceiling_main_mat = ceiling_cols[0].selectbox("Ceiling Main Material", options=list(MATERIALS_DATA.keys()))
-    ceiling_add_mat = ceiling_cols[1].selectbox("Ceiling Add. Material", options=list(MATERIALS_DATA.keys()))
+    ceiling_main_mat = ceiling_cols[0].selectbox("Ceiling Main Material", list(MATERIALS_DATA.keys()))
+    ceiling_add_mat = ceiling_cols[1].selectbox("Ceiling Add. Material", list(MATERIALS_DATA.keys()))
     ceiling_add_area = ceiling_cols[2].number_input("Ceiling Add. Area (m²)", value=0.0, min_value=0.0, step=0.1)
 
     # ---------------------------------------------------------
@@ -171,8 +61,8 @@ def main():
     # ---------------------------------------------------------
     st.subheader("Walls")
     walls_cols = st.columns(3)
-    walls_main_mat = walls_cols[0].selectbox("Walls Main Material", options=list(MATERIALS_DATA.keys()))
-    walls_add_mat = walls_cols[1].selectbox("Walls Add. Material", options=list(MATERIALS_DATA.keys()))
+    walls_main_mat = walls_cols[0].selectbox("Walls Main Material", list(MATERIALS_DATA.keys()))
+    walls_add_mat = walls_cols[1].selectbox("Walls Add. Material", list(MATERIALS_DATA.keys()))
     walls_add_area = walls_cols[2].number_input("Walls Add. Area (m²)", value=0.0, min_value=0.0, step=0.1)
 
     # ---------------------------------------------------------
@@ -180,8 +70,8 @@ def main():
     # ---------------------------------------------------------
     st.subheader("Floor")
     floor_cols = st.columns(3)
-    floor_main_mat = floor_cols[0].selectbox("Floor Main Material", options=list(MATERIALS_DATA.keys()))
-    floor_add_mat = floor_cols[1].selectbox("Floor Add. Material", options=list(MATERIALS_DATA.keys()))
+    floor_main_mat = floor_cols[0].selectbox("Floor Main Material", list(MATERIALS_DATA.keys()))
+    floor_add_mat = floor_cols[1].selectbox("Floor Add. Material", list(MATERIALS_DATA.keys()))
     floor_add_area = floor_cols[2].number_input("Floor Add. Area (m²)", value=0.0, min_value=0.0, step=0.1)
 
     # ---------------------------------------------------------
@@ -189,7 +79,7 @@ def main():
     # ---------------------------------------------------------
     st.subheader("Acoustic Rafts")
     raft_cols = st.columns(2)
-    raft_mat = raft_cols[0].selectbox("Raft Material", options=list(MATERIALS_DATA.keys()))
+    raft_mat = raft_cols[0].selectbox("Raft Material", list(MATERIALS_DATA.keys()))
     raft_count = raft_cols[1].number_input("Number of Rafts", value=0, min_value=0, step=1)
 
     # ---------------------------------------------------------
@@ -202,7 +92,7 @@ def main():
         wall_area = 2.0 * (length + width) * room_height
         ceiling_area = floor_area
 
-        # We'll accumulate results in a dictionary for CSV
+        # We'll accumulate results in a dictionary
         data_dict = {
             "Room_Length_m": length,
             "Room_Width_m": width,
@@ -217,7 +107,7 @@ def main():
             "Floor_Add_Material": floor_add_mat,
             "Floor_Add_Area_m2": floor_add_area,
             "Raft_Material": raft_mat,
-            "Number_of_Rafts": raft_count
+            "Number_of_Rafts": raft_count,
         }
 
         # Dictionary to store T60 results per frequency
@@ -228,28 +118,28 @@ def main():
         for freq in FREQ_BANDS:
             # Retrieve absorption for main + additional surfaces
             alpha_ceiling_main = MATERIALS_DATA.get(ceiling_main_mat, {}).get(freq, 0.0)
-            alpha_ceiling_add = MATERIALS_DATA.get(ceiling_add_mat, {}).get(freq, 0.0)
+            alpha_ceiling_add  = MATERIALS_DATA.get(ceiling_add_mat, {}).get(freq, 0.0)
 
-            alpha_walls_main = MATERIALS_DATA.get(walls_main_mat, {}).get(freq, 0.0)
-            alpha_walls_add = MATERIALS_DATA.get(walls_add_mat, {}).get(freq, 0.0)
+            alpha_walls_main   = MATERIALS_DATA.get(walls_main_mat, {}).get(freq, 0.0)
+            alpha_walls_add    = MATERIALS_DATA.get(walls_add_mat, {}).get(freq, 0.0)
 
-            alpha_floor_main = MATERIALS_DATA.get(floor_main_mat, {}).get(freq, 0.0)
-            alpha_floor_add = MATERIALS_DATA.get(floor_add_mat, {}).get(freq, 0.0)
+            alpha_floor_main   = MATERIALS_DATA.get(floor_main_mat, {}).get(freq, 0.0)
+            alpha_floor_add    = MATERIALS_DATA.get(floor_add_mat, {}).get(freq, 0.0)
 
             # Ensure we don’t use negative area if user enters add_area bigger than total
             effective_ceiling_main_area = max(0.0, ceiling_area - ceiling_add_area)
-            effective_walls_main_area = max(0.0, wall_area - walls_add_area)
-            effective_floor_main_area = max(0.0, floor_area - floor_add_area)
+            effective_walls_main_area   = max(0.0, wall_area - walls_add_area)
+            effective_floor_main_area   = max(0.0, floor_area - floor_add_area)
 
             # Absorption from main portion of each surface
             A_ceiling_main = effective_ceiling_main_area * alpha_ceiling_main
-            A_walls_main = effective_walls_main_area * alpha_walls_main
-            A_floor_main = effective_floor_main_area * alpha_floor_main
+            A_walls_main   = effective_walls_main_area   * alpha_walls_main
+            A_floor_main   = effective_floor_main_area   * alpha_floor_main
 
             # Absorption from additional portion
-            A_ceiling_add = ceiling_add_area * alpha_ceiling_add
-            A_walls_add = walls_add_area * alpha_walls_add
-            A_floor_add = floor_add_area * alpha_floor_add
+            A_ceiling_add  = ceiling_add_area * alpha_ceiling_add
+            A_walls_add    = walls_add_area   * alpha_walls_add
+            A_floor_add    = floor_add_area   * alpha_floor_add
 
             # Calculate total surface absorption
             total_absorption = (
@@ -261,14 +151,11 @@ def main():
             # Handle rafts (sabins per raft * number of rafts)
             alpha_raft = MATERIALS_DATA.get(raft_mat, {}).get(freq, 0.0)
             A_rafts = raft_count * alpha_raft
-
-            # Add raft absorption
             total_absorption += A_rafts
 
             # Sabine RT
-            if total_absorption <= 0:
-                t60 = 0.0
-            else:
+            t60 = 0.0
+            if total_absorption > 0:
                 t60 = 0.161 * (volume / total_absorption)
 
             t60_values[freq] = t60
@@ -276,8 +163,8 @@ def main():
             result_lines.append(f"- **{freq} Hz**: {t60:.2f} s")
 
         # Compute TMF as the average T60 for frequencies between 500 Hz and 2000 Hz
-        filtered_values = [value for freq, value in t60_values.items() if 500 <= freq <= 2000]
-        tmf = sum(filtered_values) / len(filtered_values) if filtered_values else 0.0
+        freq_500_2000 = [val for f, val in t60_values.items() if 500 <= f <= 2000]
+        tmf = sum(freq_500_2000) / len(freq_500_2000) if freq_500_2000 else 0.0
         data_dict["TMF"] = round(tmf, 3)
         result_lines.append(f"- **TMF (500-2000 Hz)**: {tmf:.2f} s")
 
@@ -286,11 +173,30 @@ def main():
         for line in result_lines:
             st.markdown(line)
 
-        # Write row to CSV
-        write_to_csv(data_dict)
+        # Add this dictionary of results to the session state list
+        st.session_state["results"].append(data_dict)
 
-        st.success("Calculation complete! Results also appended to CSV (if running locally).")
+        st.success("Calculation complete! See 'Cumulative Results' below to copy or view all data.")
 
+    # ---------------------------------------------------------
+    # Show a cumulative table of results
+    # ---------------------------------------------------------
+    st.subheader("Cumulative Results")
+
+    # Convert list of dicts to DataFrame, then display
+    if st.session_state["results"]:
+        df = pd.DataFrame(st.session_state["results"])
+        st.dataframe(df)  # Nice interactive table
+
+        # Also provide a text area with CSV format for easy copy/paste
+        csv_text = df.to_csv(index=False)
+        st.text_area(
+            "All Results in CSV Format (click and copy)",
+            csv_text,
+            height=200
+        )
+    else:
+        st.info("No results yet. Complete a calculation to see a table of results here.")
 
 if __name__ == "__main__":
     main()
