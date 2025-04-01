@@ -60,47 +60,47 @@ MATERIALS_DATA = {
         1000: 0.62, 2000: 0.51, 4000: 0.70
     },
     # Example raft with total sabins per raft
-    "Ecophon Solo 2.4x1.2m at 200mm ODS": {
+    "Ecophon Solo Raft 2.4x1.2m at 200mm ODS": {
         125: 1.30, 250: 2.80, 500: 3.5,
         1000: 4.10, 2000: 4.1, 4000: 3.9
     },
         # Example raft with total sabins per raft
-    "Ecophon Solo 2.4x1.2m at 400mm ODS": {
+    "Ecophon Solo Raft 2.4x1.2m at 400mm ODS": {
         125: 1.2, 250: 2.40, 500: 3.30,
         1000: 4.7, 2000: 4.9, 4000: 4.7
     },
     # Example raft with total sabins per raft
-    "Ecophon Solo 2.4x1.2m at 1000mm ODS": {
+    "Ecophon Solo Raft 2.4x1.2m at 1000mm ODS": {
         125: 1.10, 250: 1.20, 500: 3.70,
         1000: 5.50, 2000: 5.60, 4000: 5.30
     },
     # Example raft with total sabins per raft
-    "Ecophon Solo 1.2x0.2m c600 at 200mm ODS": {
+    "Ecophon Solo Baffle 1.2x0.2m c600 at 200mm ODS": {
         125: 0.10, 250: 0.20, 500: 0.30,
         1000: 0.40, 2000: 0.40, 4000: 0.40
     },
     # Example raft with total sabins per raft
-    "Ecophon Solo 1.2x0.3m c600 at 300mm ODS": {
+    "Ecophon Solo Baffle 1.2x0.3m c600 at 300mm ODS": {
         125: 0.20, 250: 0.30, 500: 0.30,
         1000: 0.50, 2000: 0.50, 4000: 0.50
     },
     # Example raft with total sabins per raft
-    "Ecophon Solo 1.2x0.6m c600 at 600mm ODS": {
+    "Ecophon Solo Baffle 1.2x0.6m c600 at 600mm ODS": {
         125: 0.30, 250: 0.20, 500: 0.40,
         1000: 0.60, 2000: 0.60, 4000: 0.60
     },
     # Example raft with total sabins per raft
-    "Ecophon Solo 1.8x0.2m c600 at 200mm ODS": {
+    "Ecophon Solo Baffle 1.8x0.2m c600 at 200mm ODS": {
         125: 0.10, 250: 0.40, 500: 0.40,
         1000: 0.60, 2000: 0.60, 4000: 0.60
     },
     # Example raft with total sabins per raft
-    "Ecophon Solo 1.8x0.3m c600 at 300mm ODS": {
+    "Ecophon Solo Baffle 1.8x0.3m c600 at 300mm ODS": {
         125: 0.20, 250: 0.40, 500: 0.40,
         1000: 0.70, 2000: 0.70, 4000: 0.70
     },
     # Example raft with total sabins per raft
-    "Ecophon Solo 1.8x0.6m c600 at 600mm ODS": {
+    "Ecophon Solo Baffle 1.8x0.6m c600 at 600mm ODS": {
         125: 0.40, 250: 0.40, 500: 0.70,
         1000: 1.00, 2000: 0.90, 4000: 0.90
     }
@@ -254,24 +254,42 @@ def main():
 
     if st.session_state["results"]:
         df = pd.DataFrame(st.session_state["results"])
-        st.dataframe(df)
-
-        # Convert the entire DataFrame to CSV
-        csv_text = df.to_csv(index=False)
-        # Escape newlines and quotes for safe injection into JavaScript
-        escaped_csv = csv_text.replace("\n", "\\n").replace("\"", "\\\"")
-
-        # Create a button that uses a small JS snippet to write to clipboard
-        copy_button = f"""
-            <button onclick="navigator.clipboard.writeText(`{escaped_csv}`); 
-                     alert('Copied results to clipboard!')">
-                Copy CSV to Clipboard
-            </button>
-        """
-        st.markdown(copy_button, unsafe_allow_html=True)
-
-    else:
-        st.info("No results yet. Complete a calculation to see cumulative results here.")
+        
+        # Add index column for selection
+        df = df.reset_index()
+        df['Select'] = False
+        
+        # Display editable dataframe
+        edited_df = st.data_editor(
+            df,
+            hide_index=True,
+            column_config={
+                "Select": st.column_config.CheckboxColumn(
+                    "Select",
+                    help="Select items to delete",
+                    default=False,
+                )
+            }
+        )
+        
+        # Add buttons in columns for better layout
+        col1, col2, col3 = st.columns(3)
+        
+        if col1.button("Delete Selected"):
+            selected_indices = edited_df[edited_df['Select']]['index'].tolist()
+            st.session_state["results"] = [
+                result for i, result in enumerate(st.session_state["results"]) 
+                if i not in selected_indices
+            ]
+            st.rerun()
+            
+        if col2.button("Clear All Results"):
+            st.session_state["results"] = []
+            st.rerun()
+            
+        if col3.button("Remove Last Entry") and len(st.session_state["results"]) > 0:
+            st.session_state["results"].pop()
+            st.rerun()
 
 if __name__ == "__main__":
     main()
